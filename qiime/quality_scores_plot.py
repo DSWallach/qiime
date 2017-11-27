@@ -6,7 +6,7 @@ __author__ = "William Walters"
 __copyright__ = "Copyright 2011, The QIIME Project"
 __credits__ = ["William Walters", "Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.9.1-dev"
+__version__ = "1.9.1"
 __maintainer__ = "William Walters"
 __email__ = "William.A.Walters@colorado.edu"
 
@@ -14,10 +14,9 @@ from matplotlib import use
 use('Agg', warn=False)
 from skbio.parse.sequences import parse_fasta
 from numpy import arange, std, average
-from matplotlib.pyplot import (plot, savefig, xlabel, ylabel, text,
-                               hist, figure, legend, title, show,
-                               xlim, ylim, xticks, yticks, scatter,
-                               subplot)
+from pylab import plot, savefig, xlabel, ylabel, text, \
+    hist, figure, legend, title, show, xlim, ylim, xticks, yticks,\
+    scatter, subplot
 from matplotlib.font_manager import fontManager, FontProperties
 from qiime.util import gzip_open
 from qiime.parse import parse_qual_score

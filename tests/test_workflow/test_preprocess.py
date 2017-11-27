@@ -3,27 +3,27 @@ from __future__ import division
 
 __author__ = "William Walters"
 __copyright__ = "Copyright 2011, The QIIME Project"
-__credits__ = ["William Walters", "Yoshiki Vazquez Baeza"]
+__credits__ = ["William Walters"]
 __license__ = "GPL"
-__version__ = "1.9.1-dev"
+__version__ = "1.9.1"
 __maintainer__ = "William Walters"
 __email__ = "William.A.Walters@colorado.edu"
 
 from unittest import TestCase, main
-from tempfile import mkdtemp
-from shutil import rmtree
-from os.path import join
 
 from qiime.workflow.preprocess import (get_pairs, get_matching_files,
-    create_commands_jpe, create_commands_eb, create_commands_slf, _make_file)
+    create_commands_jpe, create_commands_eb, create_commands_slf)
 
 class GenerateJoinPairedEndsCommands(TestCase):
 
     def setUp(self):
-        self.temp_dir = mkdtemp()
+        # create the temporary input files that will be used
+        # Shouldn't need any for this script, as all file IO is in scripts/
+        pass
 
     def tearDown(self):
-        rmtree(self.temp_dir)
+        # Should not need any file/folder removal
+        pass
 
     def test_get_pairs(self):
         """ Properly returns pairs of matching fastq forward/reverse reads """
@@ -315,18 +315,14 @@ class GenerateJoinPairedEndsCommands(TestCase):
 
         all_files = ['sample1_r1.fastq', 'sample2_r1.fastq']
         demultiplexing_method = 'sampleid_by_file'
-        # the output directory has to exist
-        output_dir = self.temp_dir
+        output_dir = "sl_out"
 
         actual_command = create_commands_slf(all_files, demultiplexing_method,
             output_dir)[0][0][1]
 
-        expected = ("split_libraries_fastq.py  -i {output_dir}/seqs.txt -o "
-                    "{output_dir} --read_arguments_from_file --sample_ids "
-                    "{output_dir}/sample_ids.txt --barcode_type "
-                    "'not-barcoded' ").format(output_dir=output_dir)
+        expected_command = "split_libraries_fastq.py  -i sample1_r1.fastq,sample2_r1.fastq --sample_ids sample1,sample2 -o sl_out  --barcode_type 'not-barcoded'"
 
-        self.assertEqual(actual_command, expected)
+        self.assertEqual(actual_command, expected_command)
 
     def test_create_commands_slf_mapping_barcodes(self):
         """ Properly creates commands for barcode/mapping files option """
@@ -335,26 +331,20 @@ class GenerateJoinPairedEndsCommands(TestCase):
             'sample1_bc.fastq'), 'sample2_r1.fastq':('sample2_mapping.txt',
             'sample2_bc.fastq')}
         demultiplexing_method = 'mapping_barcode_files'
-        # the output directory has to exist
-        output_dir = self.temp_dir
+        output_dir = "sl_out"
 
         actual_command = create_commands_slf(all_files, demultiplexing_method,
             output_dir)[0][0][1]
 
-        expected = ("split_libraries_fastq.py  -i {output_dir}/seqs.txt -o "
-                    "{output_dir} --read_arguments_from_file "
-                    "--barcode_read_fps {output_dir}/barcodes.txt "
-                    "--mapping_fps {output_dir}/maps.txt ").format(
-                    output_dir=output_dir)
-        self.assertEqual(actual_command, expected)
+        expected_command = "split_libraries_fastq.py  -i sample1_r1.fastq,sample2_r1.fastq --barcode_read_fps sample1_mapping.txt,sample2_mapping.txt --mapping_fps sample1_bc.fastq,sample2_bc.fastq -o sl_out "
+        self.assertEqual(actual_command, expected_command)
 
     def test_create_commands_slf_added_options(self):
         """ Properly creates slf commands with added parameters """
 
         all_files = ['sample1/sample_r1.fastq', 'sample2/sample_r1.fastq']
         demultiplexing_method = 'sampleid_by_file'
-        # the output directory has to exist
-        output_dir = self.temp_dir
+        output_dir = "sl_out"
         params = "--max_bad_run_length 15"
         leading_text = "echo"
         trailing_text = " | qsub -N BigErn -k oe"
@@ -365,38 +355,9 @@ class GenerateJoinPairedEndsCommands(TestCase):
             output_dir, params, leading_text, trailing_text,
             include_input_dir_path, remove_filepath_in_name)[0][0][1]
 
-        expected = ("echo split_libraries_fastq.py --max_bad_run_length 15 -i "
-                    "{output_dir}/seqs.txt -o {output_dir} "
-                    "--read_arguments_from_file --sample_ids "
-                    "{output_dir}/sample_ids.txt --barcode_type 'not-barcoded'"
-                    "  | qsub -N BigErn -k oe").format(output_dir=output_dir)
-        self.assertEqual(actual_command, expected)
+        expected_command = "echo split_libraries_fastq.py --max_bad_run_length 15 -i sample1/sample_r1.fastq,sample2/sample_r1.fastq --sample_ids sample1,sample2 -o sl_out  | qsub -N BigErn -k oe --barcode_type 'not-barcoded'"
 
-    def test_creat_commands_slf_exception(self):
-        all_files = ['sample1_r1.fastq', 'sample2_r1.fastq']
-        demultiplexing_method = 'sampleid_by_file'
-        output_dir = 'foo-boo-loo-bloop'
-
-        with self.assertRaises(IOError):
-            actual_command = create_commands_slf(all_files,
-                                                 demultiplexing_method,
-                                                 output_dir)[0][0][1]
-
-    def test_make_file(self):
-        a = ['/foo/bar/baz.fastq.gz', '/pleep/ploop/bloom.fastq.gz',
-             '/foo/bar/beezzz.fastq.gz', '/a/b/c/d/e/f/g/h.fastq.gz']
-        fp = join(self.temp_dir, 'gzweep')
-        observed = _make_file(a, fp)
-        with open(fp) as f:
-            self.assertEqual('\n'.join(a), f.read())
-        self.assertEqual(observed, fp)
-
-        fp = join(self.temp_dir, 'gzweep')
-        observed = _make_file([], fp)
-        with open(observed) as f:
-            self.assertEqual('', f.read())
-        self.assertEqual(observed, fp)
-
+        self.assertEqual(actual_command, expected_command)
 
 if __name__ == '__main__':
     main()

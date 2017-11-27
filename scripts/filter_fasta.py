@@ -6,7 +6,7 @@ __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011, The QIIME Project"
 __credits__ = ["Greg Caporaso", "Jens Reeder", "Yoshiki Vazquez Baeza"]
 __license__ = "GPL"
-__version__ = "1.9.1-dev"
+__version__ = "1.9.1"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
@@ -87,8 +87,7 @@ script_info['optional_options'] = [
                      "[default: %default]"),
     make_option('--valid_states', type='string',
                 help="Description of sample ids to retain (for use with "
-                     "--mapping_fp) as a string in format "
-                     "'column1:good1,good2;column2:good1'. [default: %default]")
+                     "--mapping_fp). [default: %default]")
 ]
 script_info['version'] = __version__
 

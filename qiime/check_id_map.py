@@ -203,21 +203,21 @@ def check_data_fields(header,
                       added_demultiplex_field=None):
     """ Handles all functions for valid data fields
 
-    header:  list of header strings
-    mapping_data:  list of lists of raw metadata mapping file data
-    errors:  list of errors
-    warnings:  list of warnings
-    has_barcodes:  If True, will test for perform barcodes test (presence,
-     uniqueness, valid IUPAC DNA chars).
-    char_replace:  Character used to replace invalid characters in data
-     fields.  SampleIDs always use periods to be MIENS compliant.
+    header:         list of header strings
+    mapping_data:   list of lists of raw metadata mapping file data
+    errors:         list of errors
+    warnings:       list of warnings
+    has_barcodes:   If True, will test for perform barcodes test (presence,
+                        uniqueness, valid IUPAC DNA chars).
+                        char_replace:  Character used to replace invalid characters in data
+                        fields.  SampleIDs always use periods to be MIENS compliant.
     variable_len_barcodes:  If True, suppresses warnings about barcodes of
-     varying length.
+                                varying length.
     disable_primer_check:  If True, disables tests for valid primer sequences.
     added_demultiplex_field:  If specified, references a field in the mapping
-     file to use for demultiplexing.  These are to be read from fasta labels
-     during the actual demultiplexing step.  All combinations of barcodes,
-     primers, and the added_demultiplex_field must be unique.
+                                file to use for demultiplexing.  These are to be read from fasta labels
+                                during the actual demultiplexing step.  All combinations of barcodes,
+                                primers, and the added_demultiplex_field must be unique.
     """
 
     # Check for valid IUPAC DNA characters in barcode, primer, and reverse
@@ -243,6 +243,9 @@ def check_data_fields(header,
 
     # Check for duplicate SampleIDs
     errors = check_sampleid_duplicates(header, mapping_data, errors)
+
+    # Check for mixed types in the column values
+    errors = check_mixed_types(header, mapping_data, errors)
 
     # Check for invalid characters
     warnings = check_chars_data_fields(header, mapping_data, warnings)
@@ -331,7 +334,7 @@ def check_chars_data_fields(header,
     warnings:  list of warnings
     """
 
-    allowed_data_field_chars = "+-%./ :,;_" + digits + letters
+    allowed_data_field_chars = "+-%. :,;" + digits + letters
     allowed_sampleid_chars = "." + digits + letters
     correction = 1
 
@@ -359,6 +362,26 @@ def check_chars_data_fields(header,
                     break
 
     return warnings
+
+
+def check_mixed_types(header, mapping_data, errors):
+    """
+    Checks if there are mixed types (e.g. int and string) in a particular column.
+    """
+    for curr_field in range(len(header)):
+        is_num = is_number(mapping_data[0][curr_field].strip())
+        for curr_data in range(len(mapping_data)):
+            # Need to skip newline characters
+            curr_cell = mapping_data[curr_data][curr_field].replace('\n', '')
+            if is_num != is_number(curr_cell):
+                errors.append("Mixed strings and numbers in %s\t%d" %
+                              (mapping_data[
+                                  curr_data][curr_field].replace(
+                                      '\n', ''),
+                                  curr_field))
+            break
+    return errors
+
 
 
 def check_dna_chars_primers(header,
@@ -1024,3 +1047,19 @@ def write_log_file(output_log_fp,
         else:
             curr_warning = warning
         out_f.write(curr_warning + "\n")
+
+
+def is_number(s):
+    """ Check if the provided string is a number. """
+    try:
+        float(s)
+        return True
+    except ValueError:
+        pass
+    try:
+        import unicodedata
+        unicodedata.numeric(s)
+        return True
+    except (TypeError, ValueError):
+        pass
+    return False

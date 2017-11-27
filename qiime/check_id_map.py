@@ -247,6 +247,9 @@ def check_data_fields(header,
     # Check for mixed types in the column values
     errors = check_mixed_types(header, mapping_data, errors)
 
+    # Check for non standard NA types
+    errors = check_NA(header, mapping_data, errors)
+
     # Check for invalid characters
     warnings = check_chars_data_fields(header, mapping_data, warnings)
 
@@ -355,10 +358,7 @@ def check_chars_data_fields(header,
             for curr_char in curr_cell:
                 if curr_char not in valid_chars:
                     warnings.append("Invalid characters found in %s\t%d,%d" %
-                                    (mapping_data[
-                                        curr_data][curr_field].replace(
-                                        '\n', ''),
-                                     curr_data + correction, curr_field))
+                                    (curr_cell, curr_data + correction, curr_field))
                     break
 
     return warnings
@@ -368,20 +368,31 @@ def check_mixed_types(header, mapping_data, errors):
     """
     Checks if there are mixed types (e.g. int and string) in a particular column.
     """
+    correction = 1
     for curr_field in range(len(header)):
         is_num = is_number(mapping_data[0][curr_field].strip())
         for curr_data in range(len(mapping_data)):
             # Need to skip newline characters
             curr_cell = mapping_data[curr_data][curr_field].replace('\n', '')
             if is_num != is_number(curr_cell):
-                errors.append("Mixed strings and numbers in %s\t%d" %
-                              (mapping_data[
-                                  curr_data][curr_field].replace(
-                                      '\n', ''),
-                                  curr_field))
+                errors.append("Mixed strings and numbers in %s\t%d,%d" %
+                              (curr_cell, curr_data + correction, curr_field))
             break
     return errors
 
+
+def check_NA(header, mapping_data, errors):
+    """ Checks for various ways of writing NA and marks them for replacement with NA """
+    NAs = ['n/a', 'n.a.', 'n_a', 'na', 'N/A', 'N.A.', 'N_A']
+    correction = 1
+    for curr_field in range(len(header)):
+        for curr_data in range(len(mapping_data)):
+            # Need to skip newline characters
+            curr_cell = mapping_data[curr_data][curr_field].replace('\n', '')
+            if curr_cell in NAs:
+                errors.append("Non standard NA format %s\t%d,%d" %
+                              (curr_cell, curr_data + correction, curr_field))
+    return errors
 
 
 def check_dna_chars_primers(header,
@@ -945,7 +956,7 @@ def correct_mapping_data(mapping_data,
     corrected_data = deepcopy(mapping_data)
 
     valid_sample_id_chars = letters + digits + "."
-    valid_data_field_chars = letters + digits + "+-%./ :,;_"
+    valid_data_field_chars = letters + digits + "+-%.:,;"
 
     sample_id_char_replace = "."
 

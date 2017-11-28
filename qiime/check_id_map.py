@@ -855,6 +855,12 @@ def check_header(header,
     errors = check_header_required_fields(header, errors, sample_id_ix,
                                           desc_ix, bc_ix, linker_primer_ix, added_demultiplex_field)
 
+    # Check for personally identifying information
+    errors = check_HIPAA(header, errors)
+
+    # Check for numeric column headers
+    errors = check_header_numeric(header, errors)
+
     return errors, warnings
 
 
@@ -939,10 +945,19 @@ def check_header_required_fields(header,
 
 
 def check_HIPAA(header, errors):
-    problem_headers = [ 'name', 'social_security', 'social_security_number', 'address', 'phone', 'phone_number']
+    """ Check for any potential identifying information in the data that's uploaded. """
+    problem_headers = ['name', 'social_security', 'social_security_number', 'address', 'phone', 'phone_number']
     for colname in header:
         if colname in problem_headers:
-            errors.append('Potentially personally identifying information in column ' + colname +)
+            errors.append('Potentially personally identifying information in column ' + colname)
+    return errors
+
+
+def check_header_numeric(header, errors):
+    """ Check column names for purely numeric values. """
+    for colname in header:
+        if is_number(colname):
+            errors.append('Column names cannot be numbers. Replace column header ' + colname)
     return errors
 
 # End header field checking functions

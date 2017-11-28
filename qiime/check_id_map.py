@@ -955,9 +955,18 @@ def check_HIPAA(header, errors):
 
 def check_header_numeric(header, errors):
     """ Check column names for purely numeric values. """
-    for colname in header:
+    for i, colname in enumerate(header):
         if is_number(colname):
-            errors.append('Column names cannot be numbers. Replace column header ' + colname)
+            errors.append('Column names cannot be numbers. Replace column ' + str(i) + ' header ' + colname)
+    return errors
+
+
+def check_header_na(header, errors):
+    """ Check column names for purely numeric values. """
+    NAs = ['n/a', 'n.a.', 'n_a', 'na', 'N/A', 'N.A.', 'N_A', 'NA']
+    for i, colname in enumerate(header):
+        if colname in NAs:
+            errors.append('Column names cannot be NA. Replace column ' + str(i) + ' header ' + colname)
     return errors
 
 # End header field checking functions

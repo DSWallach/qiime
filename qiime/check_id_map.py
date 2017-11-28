@@ -39,14 +39,6 @@ reference the log and html file for the user to correct the problems manually.
 
 """
 
-__author__ = "William Walters"
-__copyright__ = "Copyright 2011, The QIIME Project"
-__credits__ = ["Rob Knight", "William Walters"]  # remember to add yourself
-__license__ = "GPL"
-__version__ = "1.9.1"
-__maintainer__ = "William Walters"
-__email__ = "william.a.walters@colorado.edu"
-
 from collections import defaultdict
 from string import letters, digits, upper
 from os.path import basename, join
@@ -59,6 +51,14 @@ from skbio.sequence import DNASequence
 from qiime.util import get_qiime_project_dir, duplicates_indices
 from qiime.parse import parse_mapping_file
 from qiime.format import format_mapping_html_data
+
+__author__ = "William Walters"
+__copyright__ = "Copyright 2011, The QIIME Project"
+__credits__ = ["Rob Knight", "William Walters"]  # remember to add yourself
+__license__ = "GPL"
+__version__ = "1.9.1"
+__maintainer__ = "William Walters"
+__email__ = "william.a.walters@colorado.edu"
 
 
 def check_mapping_file(mapping_fp,
@@ -946,7 +946,8 @@ def check_header_required_fields(header,
 
 def check_HIPAA(header, errors):
     """ Check for any potential identifying information in the data that's uploaded. """
-    problem_headers = ['name', 'social_security', 'social_security_number', 'address', 'phone', 'phone_number']
+    problem_headers = ['name', 'social_security',
+                       'social_security_number', 'address', 'phone', 'phone_number']
     for colname in header:
         if colname in problem_headers:
             errors.append('Potentially personally identifying information in column ' + colname)
@@ -957,7 +958,8 @@ def check_header_numeric(header, errors):
     """ Check column names for purely numeric values. """
     for i, colname in enumerate(header):
         if is_number(colname):
-            errors.append('Column names cannot be numbers. Replace column ' + str(i) + ' header ' + colname)
+            errors.append('Column names cannot be numbers. Replace column ' +
+                          str(i) + ' header ' + colname)
     return errors
 
 
@@ -966,7 +968,8 @@ def check_header_na(header, errors):
     NAs = ['n/a', 'n.a.', 'n_a', 'na', 'N/A', 'N.A.', 'N_A', 'NA']
     for i, colname in enumerate(header):
         if colname in NAs:
-            errors.append('Column names cannot be NA. Replace column ' + str(i) + ' header ' + colname)
+            errors.append('Column names cannot be NA. Replace column ' +
+                          str(i) + ' header ' + colname)
     return errors
 
 # End header field checking functions

@@ -937,6 +937,14 @@ def check_header_required_fields(header,
 
     return errors
 
+
+def check_HIPAA(header, errors):
+    problem_headers = [ 'name', 'social_security', 'social_security_number', 'address', 'phone', 'phone_number']
+    for colname in header:
+        if colname in problem_headers:
+            errors.append('Potentially personally identifying information in column ' + colname +)
+    return errors
+
 # End header field checking functions
 
 # Misc functions
